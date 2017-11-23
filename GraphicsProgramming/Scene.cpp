@@ -17,19 +17,23 @@ Scene::Scene(Input *in)
 	// Other OpenGL / render setting should be applied here.
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
+	glutSetCursor(GLUT_CURSOR_NONE);
 
 	// Initialise variables
 	cam1.update(0.0f);
 
 	//Loading models
 	bed.load("models/bedpls.obj", "gfx/bed_tex.png");
-	lamp.load("models/lamp.obj", "gfx/lamp.png");
 	desk.load("models/desk.obj", "gfx/desk.png");
+	lamp.load("models/lamp.obj", "gfx/lamp.png");
 	door.load("models/door.obj", "gfx/door.png");
 	doorFrame.load("models/doorFrame.obj", "gfx/doorFrame.png");
 	chair.load("models/chair.obj", "gfx/chair.png");
 
-	testDisc.generateQuad(1, 20, "gfx/concrete.png");
+
+	floor.generateQuad(10, 20, "gfx/metal_surf.png", { 0,1,0 }, 1.3, 1);
+	wall.generateQuad(10, 20, "gfx/concrete.png", { 0,0,1 }, 1.3, 0.7);
+	wall2.generateQuad(10, 20, "gfx/concrete.png", { -1,0,0 }, 1, 0.7);
 
 }
 
@@ -96,6 +100,25 @@ void Scene::update(float dt)
 		camUpdate = false;
 	}
 
+	if (input->isKeyDown('u')) {
+		lightPos.z += (1 * dt);
+	}
+	if (input->isKeyDown('j')) {
+		lightPos.z -= (1 * dt);
+	}
+	if (input->isKeyDown('h')) {
+		lightPos.x -= (1 * dt);
+	}
+	if (input->isKeyDown('k')) {
+		lightPos.x += (1 * dt);
+	}
+	if (input->isKeyDown('o')) {
+		lightPos.y += (1 * dt);
+	}
+	if (input->isKeyDown('l')) {
+		lightPos.y -= (1 * dt);
+	}
+
 	position = cam1.getPosition();
 	lookAt = cam1.getLookAt();
 	up = cam1.getUp();
@@ -118,7 +141,7 @@ void Scene::render() {
 	///TEMP LIGHTING SETTINGS
 	GLfloat Light_Ambient[] = { 0.4f, 0.4f, 0.4f, 1.0f };
 	GLfloat Light_Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat Light_Position[] = { 3.0f, 3.0f, 10.0f, 0.0f };
+	GLfloat Light_Position[] = { lightPos.x, lightPos.y, lightPos.z, 0.0f };
 
 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, Light_Ambient);
@@ -127,17 +150,61 @@ void Scene::render() {
 	glEnable(GL_LIGHT0);
 
 	///***************************
-
+	glPushMatrix();
+		glTranslatef(lightPos.x, lightPos.y, lightPos.z);
+		glutWireSphere(0.1, 10, 10);
+	glPopMatrix();
 	// Render geometry/scene here -------------------------------------
 	
-	//bed.render();
-	//lamp.render();
-	//desk.render();
-	//door.render();
-	//doorFrame.render();
-	//chair.render();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	testDisc.render();
+	//Walls and Floor/Ceiling
+	glPushMatrix();
+		glTranslatef(0, 1, 1);
+		glRotatef(90, 1, 0, 0);
+		floor.render();
+	glPopMatrix();
+
+	wall.render();
+
+	glPushMatrix();
+		glTranslatef(12, 0, 11);
+		glRotatef(90, 0, 1, 0);
+		wall2.render();
+		glPushMatrix();
+		glScalef(0.75, 0.75, 0.75);
+			glTranslatef(8, 3.7, 1);
+			door.render();
+			doorFrame.render();
+		glPopMatrix();
+	glPopMatrix();
+
+	//Room objects
+	glPushMatrix();
+		glScalef(1.3, 1.3, 1.3);
+		glTranslatef(1, -0.1, 3);
+		glRotatef(90, 0, 1, 0);
+		bed.render();
+	glPopMatrix();
+
+	glPushMatrix();
+		glScalef(2, 2, 2);
+		glTranslatef(4, 0, 4);
+		glRotatef(90, 0, 1, 0);
+		desk.render();
+		glPushMatrix();
+			glTranslatef(-1.15, 1.15, 0.6);
+			glRotatef(120, 0, 1, 0);
+			lamp.render();
+		glPopMatrix();
+		glScalef(0.2, 0.2, 0.2);
+		glTranslatef(0, 1, 0);
+		glRotatef(-90, 0, 1, 0);
+		chair.render();
+	glPopMatrix();
+	
+
 
 	// End render geometry --------------------------------------
 

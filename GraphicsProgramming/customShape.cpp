@@ -53,38 +53,87 @@ void customShape::generateDisc(float size, int segments, char* textureFilename) 
 	loadTexture(textureFilename);
 }
 
-void customShape::generateQuad(float size, int segments, char * textureFilename)
+void customShape::generateQuad(float size, int segments, char * textureFilename, Vector3 norm, float xScale, float yScale)
 {
+	float segSize = size / segments;
+	float texIncrement = 1 / segments;
 
-	//top left vertex
-	normals.push_back(0.0f);
-	normals.push_back(0.0f);
-	normals.push_back(1.0f);
-
-	texCoords.push_back(0.0f);
-	texCoords.push_back(0.0f);
-
-	vertex.push_back(-size/2);
-	vertex.push_back(-size / 2);
-	vertex.push_back(-size / 2);
-
-	for (int y = 0; y < segments; y++) {
-		for (int x = 0; x < segments; x++)
+	for (int y = 0; y < (segments*yScale); y++) {
+		for (int x = 0; x < (segments*xScale); x++)
 		{
-			//rest of vertices
-			normals.push_back(0.0f);
-			normals.push_back(0.0f);
-			normals.push_back(1.0f);
+			//top left
+			normals.push_back(norm.x);
+			normals.push_back(norm.y);
+			normals.push_back(norm.z);
 
-			texCoords.push_back((size/segments)*x);
-			texCoords.push_back((size / segments)*y);
+			texCoords.push_back((segSize*x)/1);
+			texCoords.push_back((segSize*y)/1);
 
-			vertex.push_back((size / segments)*x);
-			vertex.push_back((size / segments)*y);
+			vertex.push_back(segSize*x);
+			vertex.push_back(segSize*y);
+			vertex.push_back(1.0f);
+
+			//top right
+			normals.push_back(norm.x);
+			normals.push_back(norm.y);
+			normals.push_back(norm.z);
+
+			texCoords.push_back((segSize*(x + 1))/1);
+			texCoords.push_back((segSize*y)/1);
+
+			vertex.push_back(segSize*(x + 1));
+			vertex.push_back(segSize*y);
+			vertex.push_back(1.0f);
+
+			//bottom left
+			normals.push_back(norm.x);
+			normals.push_back(norm.y);
+			normals.push_back(norm.z);
+
+			texCoords.push_back((segSize*x)/1);
+			texCoords.push_back((segSize*(y + 1)) / 1);
+
+			vertex.push_back(segSize*x);
+			vertex.push_back(segSize*(y + 1));
+			vertex.push_back(1.0f);
+
+			//bottom left
+			normals.push_back(norm.x);
+			normals.push_back(norm.y);
+			normals.push_back(norm.z);
+
+			texCoords.push_back((segSize*x) / 1);
+			texCoords.push_back((segSize*(y + 1)) / 1);
+
+			vertex.push_back(segSize*x);
+			vertex.push_back(segSize*(y + 1));
+			vertex.push_back(1.0f);
+
+			//top right
+			normals.push_back(norm.x);
+			normals.push_back(norm.y);
+			normals.push_back(norm.z);
+
+			texCoords.push_back((segSize*(x + 1)) / 1);
+			texCoords.push_back((segSize*y) / 1);
+
+			vertex.push_back(segSize*(x + 1));
+			vertex.push_back(segSize*y);
+			vertex.push_back(1.0f);
+
+			//bottom right
+			normals.push_back(norm.x);
+			normals.push_back(norm.y);
+			normals.push_back(norm.z);
+
+			texCoords.push_back((segSize*(x + 1))/1);
+			texCoords.push_back((segSize*(y + 1))/1);
+
+			vertex.push_back(segSize*(x + 1));
+			vertex.push_back(segSize*(y + 1));
 			vertex.push_back(1.0f);
 		}
 	}
-
 	loadTexture(textureFilename);
 }
 

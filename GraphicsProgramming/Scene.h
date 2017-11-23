@@ -47,7 +47,11 @@ public:
 	Model chair;
 
 	//Custom models
-	customShape testDisc;
+	customShape floor;
+	customShape wall, wall2;
+
+	///TEMP VARs
+	Vector3 lightPos = { 0.0f,0.0f,0.0f };
 
 protected:
 	// Renders text (x, y positions, RGB colour of text, string of text to be rendered)
