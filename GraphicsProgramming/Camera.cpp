@@ -67,6 +67,8 @@ void Camera::movePYR(float p, float y, float r, float dt) {
 	Pitch += p*dt;
 	Yaw += y*dt;
 	Roll += r*dt;
+
+	tempYaw = -Yaw;
 }
 
 Vector3 Camera::getPosition() {

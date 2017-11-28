@@ -15,6 +15,10 @@ public:
 
 	void movePYR(float p, float y, float r, float dt);
 
+	//TEST
+	float tempYaw;
+	//***
+
 	Vector3 getPosition();
 	Vector3 getLookAt();
 	Vector3 getUp();

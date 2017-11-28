@@ -47,11 +47,16 @@ public:
 	Model chair;
 
 	//Custom models
+	customShape skyLightBorder;
 	customShape floor;
 	customShape wall, wall2;
 
+	//textures
+	GLuint skybox;
+
 	///TEMP VARs
 	Vector3 lightPos = { 0.0f,0.0f,0.0f };
+	Vector3 torchDir;
 
 protected:
 	// Renders text (x, y positions, RGB colour of text, string of text to be rendered)

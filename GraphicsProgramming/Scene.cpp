@@ -23,17 +23,26 @@ Scene::Scene(Input *in)
 	cam1.update(0.0f);
 
 	//Loading models
-	bed.load("models/bedpls.obj", "gfx/bed_tex.png");
+	/*bed.load("models/bedpls.obj", "gfx/bed_tex.png");
 	desk.load("models/desk.obj", "gfx/desk.png");
 	lamp.load("models/lamp.obj", "gfx/lamp.png");
 	door.load("models/door.obj", "gfx/door.png");
 	doorFrame.load("models/doorFrame.obj", "gfx/doorFrame.png");
-	chair.load("models/chair.obj", "gfx/chair.png");
+	chair.load("models/chair.obj", "gfx/chair.png");*/
 
 
+	//generating models
+	skyLightBorder.generateQuad(10, 20, "gfx/metal_surf.png", { 0,1,0 }, 1.3, 1);
 	floor.generateQuad(10, 20, "gfx/metal_surf.png", { 0,1,0 }, 1.3, 1);
 	wall.generateQuad(10, 20, "gfx/concrete.png", { 0,0,1 }, 1.3, 0.7);
 	wall2.generateQuad(10, 20, "gfx/concrete.png", { -1,0,0 }, 1, 0.7);
+
+	//loading textures
+	skybox = SOIL_load_OGL_texture(
+		"gfx/skybox.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
 
 }
 
@@ -141,13 +150,32 @@ void Scene::render() {
 	///TEMP LIGHTING SETTINGS
 	GLfloat Light_Ambient[] = { 0.4f, 0.4f, 0.4f, 1.0f };
 	GLfloat Light_Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat Light_Position[] = { lightPos.x, lightPos.y, lightPos.z, 0.0f };
-
+	GLfloat Light_Position[] = { 10, 10, 10, 0.0f };
 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, Light_Ambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, Light_Diffuse);
 	glLightfv(GL_LIGHT0, GL_POSITION, Light_Position);
 	glEnable(GL_LIGHT0);
+
+	GLfloat Spot_Ambient[] = { 0.4f, 0.4f, 0.4f, 1.0f };
+	GLfloat Spot_Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		GLfloat spot_Direction[] = { 1, 0, 0 };
+	GLfloat Spot_Position[] = { position.x, position.y, position.z, 1.0f};
+	torchDir = lookAt;
+	torchDir.normalise();
+	torchDir.operator+=(lookAt);
+	
+	glPushMatrix();
+		glRotatef(cam1.tempYaw, 0, 1, 0);
+		glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_Direction);
+	glPopMatrix();
+
+	glLightfv(GL_LIGHT1, GL_AMBIENT, Spot_Ambient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, Spot_Diffuse);
+	glLightfv(GL_LIGHT1, GL_POSITION, Spot_Position);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 10.0f);
+	//glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 50.0);
+	glEnable(GL_LIGHT1);
 
 	///***************************
 	glPushMatrix();
@@ -156,6 +184,145 @@ void Scene::render() {
 	glPopMatrix();
 	// Render geometry/scene here -------------------------------------
 	
+	glDisable(GL_DEPTH_TEST);
+	glBindTexture(GL_TEXTURE_2D, skybox);
+	glPushMatrix();
+		glTranslatef(position.x, position.y, position.z);
+		glRotatef(-90, 1, 0, 0);
+		glBegin(GL_TRIANGLES);
+
+		glColor4f(1.0, 1.0, 1.0, 1.0);
+		// front face
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 1.f / 4.f); //top left
+		glVertex3f(-0.5f, 0.5f, 0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 1.f / 4.f);  //bottom left
+		glVertex3f(0.5f, 0.5f, 0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 0.0f); //top right
+		glVertex3f(-0.5f, -0.5f, 0.5f);
+
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 1.f / 4.f);  //bottom left
+		glVertex3f(0.5f, 0.5f, 0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 0.0f); //bottom right
+		glVertex3f(0.5f, -0.5f, 0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 0.0f); //top right
+		glVertex3f(-0.5f, -0.5f, 0.5f);
+
+		//back face
+
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 2.f / 4.f);
+		glVertex3f(-0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 3.f / 4.f);
+		glVertex3f(0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 2.f / 4.f);
+		glVertex3f(-0.5f, -0.5f, -0.5f);
+
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 3.f / 4.f);
+		glVertex3f(0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 3.f / 4.f);
+		glVertex3f(0.5f, -0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 2.f / 4.f);
+		glVertex3f(-0.5f, -0.5f, -0.5f);
+
+		// left face
+
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 1.f / 4.f);
+		glVertex3f(-0.5f, 0.5f, 0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 2.f / 4.f);
+		glVertex3f(-0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(0, 1.f / 4.f);
+		glVertex3f(-0.5f, -0.5f, 0.5f);
+
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 2.f / 4.f);
+		glVertex3f(-0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(0, 2.f / 4.f);
+		glVertex3f(-0.5f, -0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(0, 1.f / 4.f);
+		glVertex3f(-0.5f, -0.5f, 0.5f);
+
+		// right face
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 1.f / 4.f);
+		glVertex3f(0.5f, 0.5f, 0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 2.f / 4.f);
+		glVertex3f(0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(3.f / 4.f, 1.f / 4.f);
+		glVertex3f(0.5f, -0.5f, 0.5f);
+
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 2.f / 4.f);
+		glVertex3f(0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(3.f / 4.f, 2.f / 4.f);
+		glVertex3f(0.5f, -0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(3.f / 4.f, 1.f / 4.f);
+		glVertex3f(0.5f, -0.5f, 0.5f);
+
+		// bottom face
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(3.f / 4.f, 1.f / 4.f);
+		glVertex3f(0.5f, -0.5f, 0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(3.f / 4.f, 2.f / 4.f);
+		glVertex3f(0.5f, -0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1, 1.f / 4.f);
+		glVertex3f(-0.5f, -0.5f, 0.5f);
+
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(3.f / 4.f, 2.f / 4.f);
+		glVertex3f(0.5f, -0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1, 2.f / 4.f);
+		glVertex3f(-0.5f, -0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1, 1.f / 4.f);
+		glVertex3f(-0.5f, -0.5f, 0.5f);
+
+		// top face
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 1.f / 4.f);
+		glVertex3f(0.5f, 0.5f, 0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 2.f / 4.f);
+		glVertex3f(0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 1.f / 4.f);
+		glVertex3f(-0.5f, 0.5f, 0.5f);
+
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(2.f / 4.f, 2.f / 4.f);
+		glVertex3f(0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 2.f / 4.f);
+		glVertex3f(-0.5f, 0.5f, -0.5f);
+		glNormal3f(0.0f, 0.0f, 1.0f);
+		glTexCoord2f(1.f / 4.f, 1.f / 4.f);
+		glVertex3f(-0.5f, 0.5f, 0.5f);
+		glEnd();
+	glPopMatrix();
+	glEnable(GL_DEPTH_TEST);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -164,6 +331,12 @@ void Scene::render() {
 		glTranslatef(0, 1, 1);
 		glRotatef(90, 1, 0, 0);
 		floor.render();
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(0, 10, 0);
+		glRotatef(90, 1, 0, 0);
+		skyLightBorder.render();
 	glPopMatrix();
 
 	wall.render();
